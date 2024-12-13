@@ -15,213 +15,243 @@ import { useApis } from "../../Api_url";
 
 const ShopDetailsForm = () => {
   const navigate = useNavigate();
-  const {putJson, postJson, putFormData, postFormData} = useApis()
-
-  // State to manage multiple forms
   const [forms, setForms] = useState([
     {
-      shopId: '', // Adding shopId in the state for each shop
-      shopName: '',
-      shopContact: '',
-      alternateContact: '',
-      shopAddress: '',
-      openTime: '',
-      closeTime: '',
-      openDays: '',
-      closeDays: ''
+      shopName: "",
+      shopContact: "",
+      alternateContact: "",
+      shopAddress: "",
+      shopLatitude: "",
+      shopLongitude: "",
+      openTime: "",
+      closeTime: "",
+      openDays: "",
+      closeDays: "",
+      shopImage: "",
+      state: "",
+      district: "",
     }
   ]);
 
-  // Function to handle the change in form values
+  const [states, setStates] = useState([]);
+  const [districts, setDistricts] = useState([]);
+  const [loadingStates, setLoadingStates] = useState(true);
+  const [loadingDistricts, setLoadingDistricts] = useState(false);
+
+  const token = localStorage.getItem("access_token");
+
+  // Fetch states from API
+  useEffect(() => {
+    const fetchStates = async () => {
+      setLoadingStates(true);
+      try {
+        const response = await axios.get("https://apis.agrisarathi.com/home/GetStates?user_language=1");
+        setStates(response.data.states_data || []);
+      } catch (error) {
+        console.error("Error fetching states:", error);
+      } finally {
+        setLoadingStates(false);
+      }
+    };
+    fetchStates();
+  }, []);
+
+  // Fetch shop data from the API when the component mounts
+  useEffect(() => {
+    const fetchShopData = async () => {
+      try {
+        const response = await axios.get("https://apis.agrisarathi.com/fposupplier/UserProfileView", {
+          headers: {
+            "Authorization": `Bearer ${token}`,
+          },
+        });
+
+        const shopData = response?.data?.data?.shop_details;
+        if (shopData && shopData.length > 0) {
+          // If there's shop data, populate the form
+          setForms(shopData);
+        }
+      } catch (error) {
+        console.error("Error fetching shop data:", error);
+        Swal.fire("Error", "Unable to fetch shop data.", "error");
+      }
+    };
+    fetchShopData();
+  }, [token]);
+
+  // Fetch districts when state is selected
+  const handleStateChange = async (index, event) => {
+    const selectedState = event.target.value;
+    const newForms = [...forms];
+    newForms[index].state = selectedState;
+    newForms[index].district = ""; // Reset district on state change
+    setForms(newForms);
+
+    // Fetch districts for selected state
+    setLoadingDistricts(true);
+    try {
+      const response = await axios.get(
+        `https://apis.agrisarathi.com/home/GetStateDistrictsASuperadamin?state=${selectedState}&user_language=1`
+      );
+
+      // Check if the districts response is an array before setting districts
+      if (Array.isArray(response.data.states_data)) {
+        setDistricts(response.data?.states_data || []);
+      } else {
+        console.error("Districts data is not an array:", response.data);
+      }
+
+      setLoadingDistricts(false);
+    } catch (error) {
+      console.error("Error fetching districts:", error);
+      setLoadingDistricts(false);
+    }
+  };
+
+  // Handle form change for each field
   const handleFormChange = (index, event) => {
     const newForms = [...forms];
     newForms[index][event.target.name] = event.target.value;
     setForms(newForms);
   };
 
-  // Function to handle adding a new form
+  // Handle image upload
+  const handleImageUpload = (event, index) => {
+    const newForms = [...forms];
+    newForms[index].shopImage = event.target.files[0];
+    setForms(newForms);
+  };
+
+  // Handle adding a new shop form
   const handleAddForm = () => {
     setForms([
       ...forms,
       {
-        shopId: '', // Initialize shopId for new forms
-        shopName: '',
-        shopContact: '',
-        alternateContact: '',
-        shopAddress: '',
-        openTime: '',
-        closeTime: '',
-        openDays: '',
-        closeDays: ''
-      }
+        shopName: "",
+        shopContact: "",
+        alternateContact: "",
+        shopAddress: "",
+        shopLatitude: "",
+        shopLongitude: "",
+        openTime: "",
+        closeTime: "",
+        openDays: "",
+        closeDays: "",
+        shopImage: "",
+        state: "",
+        district: "",
+      },
     ]);
   };
 
-  // Function to handle removing a form
+  // Handle removing a shop form
   const handleRemoveForm = (index) => {
     const newForms = forms.filter((_, i) => i !== index);
     setForms(newForms);
   };
 
-  // Function to handle image upload
-  // const handleImageUpload = async (event, index) => {
-  //   const file = event.target.files[0]; // Get the selected file
-  //   if (!file) return; // If no file is selected, exit
-
-  //   const formData = new FormData();
-  //   formData.append("shop", file); // Append the image to FormData
-
-  //   try {
-  //     const token = localStorage.getItem("access_token"); // Get the token from localStorage
-
-  //     const response = await axios.put(
-  //       "https://apis.agrisarathi.com/fposupplier/UpdateShopPicture",
-  //       formData,
-  //       {
-  //         headers: {
-  //           Authorization: `Bearer ${token}`,
-  //           "Content-Type": "multipart/form-data", // Set the content type for file upload
-  //         },
-  //       }
-  //     );
-
-  //     if (response.status === 200) {
-  //       Swal.fire({
-  //         icon: "success",
-  //         title: "Image uploaded successfully!",
-  //         text: response.data.message || "The shop image has been uploaded.",
-  //       });
-
-  //       // You can update the form with the image URL or display the image preview
-  //       const newForms = [...forms];
-  //       newForms[index].shopImage = URL.createObjectURL(file); // Add a preview of the uploaded image
-  //       setForms(newForms);
-  //     } else {
-  //       Swal.fire({
-  //         icon: "error",
-  //         title: "Image Upload Failed",
-  //         text: response.data.message || "There was an error uploading the image.",
-  //       });
-  //     }
-  //   } catch (error) {
-  //     console.error(error);
-  //     Swal.fire({
-  //       icon: "error",
-  //       title: "Network Error",
-  //       text: "There was an error while uploading the image. Please try again later.",
-  //     });
-  //   }
-  // };
-
-
- 
-  const handleSubmit = async (isUpdate = false) => {
+  // Submit form data to the API
+  const handleSubmit = async () => {
     try {
-      const payload = {
-        shops: forms.map(form => ({
-          shopId: form.shopId,  
-          shopName: form.shopName,
-          shopContact: form.shopContact,
-          alternateContact: form.alternateContact,
-          shopAddress: form.shopAddress,
-          openTime: form.openTime,
-          closeTime: form.closeTime,
-          openDays: form.openDays,
-          closeDays: form.closeDays
-        }))
-      };
+      for (let form of forms) {
+        if (
+          !form.shopName ||
+          !form.shopContact ||
+          !form.state ||
+          !form.district
+        ) {
+          Swal.fire("Warning", "Please fill Shop name, Shop contact, Shop state and Shop district are required fields.", "warning");
+          return; // Stop the submission if validation fails
+        }
 
-      // Get token from localStorage
-      const token = localStorage.getItem('access_token');
+        const formData = new FormData();
+        formData.append("shopName", form.shopName);
+        formData.append("shopContactNo", form.shopContact);
+        formData.append("shop_opentime", form.openTime);
+        formData.append("shop_closetime", form.closeTime);
+        formData.append("shop_opendays", form.openDays);
+        formData.append("shop_closedon", form.closeDays);
+        formData.append("shopLatitude", form.shopLatitude);
+        formData.append("shopLongitude", form.shopLongitude);
+        formData.append("state", form.state);
+        formData.append("district", form.district);
 
-      let response;
+        if (form.shopImage) {
+          formData.append("shopimage", form.shopImage);
+        }
 
-      // Make PUT request for updating
-      if (isUpdate) {
-        response = await putJson('UpdateShopbyFPOSupplier', payload)
-      
-      } else {
-        // Make POST request for adding
-        response = await postJson('AddShopbyFPOSupplier', payload)
-      }
+        const response = await axios.post(
+          "https://apis.agrisarathi.com/fposupplier/AddShopbyFPOSupplier",
+          formData,
+          {
+            headers: {
+              "Authorization": `Bearer ${token}`,
+            },
+          }
+        );
 
-      if (response.status === 201) {
-        Swal.fire({
-          icon: "success",
-          title: isUpdate ? "Shop details updated successfully!" : "Shop details saved successfully!",
-          text: response.data.message || "Your shop details have been submitted successfully.",
-        });
-        navigate("/bankdetails"); // Redirect to profile page after successful submission
-      } else {
-        Swal.fire({
-          icon: "error",
-          title: isUpdate ? "Update Failed" : "Submission Failed",
-          text: response.data.message || "Something went wrong. Please try again.",
-        });
+        if (response.status === 201) {
+          Swal.fire("Success!", "Shop details submitted successfully.", "success");
+          navigate("/bankdetails");
+        } else {
+          Swal.fire("Error", "There was an issue submitting your data.", "error");
+        }
       }
     } catch (error) {
-      console.error(error);
-      Swal.fire({
-        icon: "error",
-        title: "Network Error",
-        text: "There was an error while submitting the form. Please try again later.",
-      });
+      console.error("Error submitting data:", error);
+      Swal.fire("Error", "Something went wrong. Please try again.", "error");
     }
   };
 
-  // Example to load existing shop details if you are editing an existing shop
-  const loadShopDetails = (shopData) => {
-    setForms(shopData.map(shop => ({
-      shopId: shop.shopId,  // Ensure shopId is included for update
-      shopName: shop.shopName,
-      shopContact: shop.shopContact,
-      alternateContact: shop.alternateContact,
-      shopAddress: shop.shopAddress,
-      openTime: shop.openTime,
-      closeTime: shop.closeTime,
-      openDays: shop.openDays,
-      closeDays: shop.closeDays
-    })));
-  };
 
   return (
     <>
       <Navbar />
       <div className="flex flex-col items-center bg-gray-50 p-6 min-h-screen mt-16">
         {/* Step Progress */}
-        <div className="flex justify-center items-center space-x-4 mb-6">
+        <div className="flex justify-center items-center space-x-4 mb-6 md:p-0 p-5">
           <div className="flex items-center space-x-2">
             <div className="md:w-4 md:h-4 w-6 h-4 rounded-full bg-green-500" />
-            <span className="text-sm text-gray-700">Profile details</span>
+            <button onClick={() => (navigate('/profile'))}>
+              <span className="text-sm text-gray-700">Profile details</span>
+            </button>
           </div>
           <div className="w-16 h-[2px] bg-gray-400" />
           <div className="flex items-center space-x-2">
             <div className="md:w-4 md:h-4 w-6 h-4 rounded-full bg-green-500" />
-            <span className="text-sm text-gray-700">Shop Details</span>
+            <button onClick={() => (navigate('/shopdetails'))}>
+              <span className="text-sm text-gray-700">Shop Details</span>
+            </button>
           </div>
           <div className="w-16 h-[2px] bg-gray-400" />
           <div className="flex items-center space-x-2">
             <div className="md:w-4 md:h-4 w-6 h-4 rounded-full bg-gray-400" />
-            <span className="text-sm text-gray-700">Bank Details</span>
+            <button onClick={() => (navigate('/bankdetails'))}>
+              <span className="text-sm text-gray-700">Bank Details</span>
+            </button>
           </div>
         </div>
-
         {/* Form Section */}
         {forms.map((form, index) => (
-          <form key={index} className="flex justify-center flex-col gap-6 w-full max-w-5xl bg-white p-6 shadow-md rounded-md mb-8 ">
+          <form
+            key={index}
+            className="flex justify-center flex-col gap-6 w-full max-w-5xl bg-white p-6 shadow-md rounded-md mb-8 "
+          >
             {/* Left Side: Image and Time Fields */}
             <div className="col-span-4 flex flex-col items-center space-y-4">
               {/* Image Upload */}
               <div className="flex flex-col items-center">
-                <img
-                  src={form.shopImage || "https://via.placeholder.com/120"} // Use uploaded image or a placeholder
-                  alt="Shop"
-                  className="w-32 h-32 object-cover mb-2 rounded"
-                />
+                {form.shopImage && form.shopImage instanceof File && (
+                  <img
+                    src={URL.createObjectURL(form.shopImage)} // Only create object URL if it's a valid File
+                    alt="Shop"
+                    className="w-32 h-32 object-cover mb-2 rounded"
+                  />
+                )}
                 <input
                   type="file"
                   accept="image/*"
-                  
+                  onChange={(e) => handleImageUpload(e, index)}
                   style={{ display: "none" }} // Hide the default input
                   id={`upload-image-${index}`} // Unique ID for each form
                 />
@@ -236,14 +266,17 @@ const ShopDetailsForm = () => {
                 </Button>
               </div>
 
+
               {/* Time Fields */}
-              <FormControl fullWidth>
+              <div className="w-full">
                 <InputLabel>Open Time</InputLabel>
                 <Select
                   name="openTime"
                   value={form.openTime}
                   onChange={(e) => handleFormChange(index, e)}
+                  className="w-full"
                 >
+                  {/* Time options */}
                   <MenuItem value="1 a.m">1 a.m</MenuItem>
                   <MenuItem value="2 a.m">2 a.m</MenuItem>
                   <MenuItem value="3 a.m">3 a.m</MenuItem>
@@ -255,15 +288,19 @@ const ShopDetailsForm = () => {
                   <MenuItem value="9 a.m">9 a.m</MenuItem>
                   <MenuItem value="10 a.m">10 a.m</MenuItem>
                   <MenuItem value="11 a.m">11 a.m</MenuItem>
+                  {/* Add more time options */}
                 </Select>
-              </FormControl>
-              <FormControl fullWidth>
+              </div>
+
+              <div className="w-full">
                 <InputLabel>Close Time</InputLabel>
                 <Select
                   name="closeTime"
                   value={form.closeTime}
                   onChange={(e) => handleFormChange(index, e)}
+                  className="w-full"
                 >
+                  {/* Time options */}
                   <MenuItem value="12 p.m">12 p.m</MenuItem>
                   <MenuItem value="1 p.m">1 p.m</MenuItem>
                   <MenuItem value="2 p.m">2 p.m</MenuItem>
@@ -276,16 +313,18 @@ const ShopDetailsForm = () => {
                   <MenuItem value="9 p.m">9 p.m</MenuItem>
                   <MenuItem value="10 p.m">10 p.m</MenuItem>
                   <MenuItem value="11 p.m">11 p.m</MenuItem>
+                  {/* Add more time options */}
                 </Select>
-              </FormControl>
+              </div>
 
               {/* Days Dropdown */}
-              <FormControl fullWidth>
+              <div className="w-full">
                 <InputLabel>Open Days</InputLabel>
                 <Select
                   name="openDays"
                   value={form.openDays}
                   onChange={(e) => handleFormChange(index, e)}
+                  className="w-full"
                 >
                   <MenuItem value="Monday - Tuesday">Monday - Tuesday</MenuItem>
                   <MenuItem value="Monday - Wednesday">Monday - Wednesday</MenuItem>
@@ -293,15 +332,17 @@ const ShopDetailsForm = () => {
                   <MenuItem value="Monday - Friday">Monday - Friday</MenuItem>
                   <MenuItem value="Monday - Saturday">Monday - Saturday</MenuItem>
                   <MenuItem value="Monday - Sunday">Monday - Sunday</MenuItem>
+                  {/* Add more days options */}
                 </Select>
-              </FormControl>
+              </div>
 
-              <FormControl fullWidth>
+              <div className="w-full">
                 <InputLabel>Close Days</InputLabel>
                 <Select
                   name="closeDays"
                   value={form.closeDays}
                   onChange={(e) => handleFormChange(index, e)}
+                  className="w-full"
                 >
                   <MenuItem value="Sunday">Sunday</MenuItem>
                   <MenuItem value="Monday">Monday</MenuItem>
@@ -310,12 +351,62 @@ const ShopDetailsForm = () => {
                   <MenuItem value="Thursday">Thursday</MenuItem>
                   <MenuItem value="Friday">Friday</MenuItem>
                   <MenuItem value="Saturday">Saturday</MenuItem>
+                  {/* Add more days options */}
                 </Select>
-              </FormControl>
+              </div>
+              <div className="w-full">
+                <InputLabel>State</InputLabel>
+                <Select
+                  name="state"
+                  value={form.state}
+                  onChange={(e) => handleStateChange(index, e)}
+                  className="w-full"
+                >
+                  {loadingStates ? (
+                    <MenuItem>Loading...</MenuItem>
+                  ) : (
+                    Array.isArray(states) && states.length > 0 ? (
+                      states.map((state) => (
+                        <MenuItem key={state.id} value={state.id}>
+                          {state.state_name}
+                        </MenuItem>
+                      ))
+                    ) : (
+                      <MenuItem>No states available</MenuItem>
+                    )
+                  )}
+                </Select>
+              </div>
+
+              {/* New District Dropdown */}
+              <div className="w-full">
+                <InputLabel>District</InputLabel>
+                <Select
+                  name="district"
+                  value={form.district}
+                  onChange={(e) => handleFormChange(index, e)}
+                  className="w-full"
+                  disabled={loadingDistricts || !form.state}
+                >
+                  {loadingDistricts ? (
+                    <MenuItem>Loading...</MenuItem>
+                  ) : (
+                    Array.isArray(districts) && districts.length > 0 ? (
+                      districts.map((district) => (
+                        <MenuItem key={district.id} value={district.id}>
+                          {district.district_name}
+                        </MenuItem>
+                      ))
+                    ) : (
+                      <MenuItem>No districts available</MenuItem>
+                    )
+                  )}
+                </Select>
+              </div>
             </div>
 
-            {/* Right Side: Shop Details */}
-            <div className="col-span-8 grid grid-cols-2 gap-4">
+            {/* Right Side: Input Fields */}
+            <div className="col-span-8 grid md:grid-cols-2 gap-4">
               <TextField
                 name="shopName"
                 label="Shop Name"
@@ -348,6 +439,22 @@ const ShopDetailsForm = () => {
                 value={form.shopAddress}
                 onChange={(e) => handleFormChange(index, e)}
               />
+              <TextField
+                name="shopLatitude"
+                label="Latitude"
+                variant="outlined"
+                fullWidth
+                value={form.shopLatitude}
+                onChange={(e) => handleFormChange(index, e)}
+              />
+              <TextField
+                name="shopLongitude"
+                label="Longitude"
+                variant="outlined"
+                fullWidth
+                value={form.shopLongitude}
+                onChange={(e) => handleFormChange(index, e)}
+              />
             </div>
 
             {/* Remove Button */}
@@ -362,6 +469,8 @@ const ShopDetailsForm = () => {
                 </Button>
               </div>
             )}
+
+            {/* Add another shop button */}
             <Button
               className="!text-green-600 !border-green-600 hover:!bg-green-50"
               variant="outlined"
@@ -370,33 +479,27 @@ const ShopDetailsForm = () => {
             >
               Add Another Shop
             </Button>
-
-            {/* Cancel and Save Buttons */}
-            <div className="col-span-2 flex justify-between mt-4 ">
-              <Button className="!text-green-600 !border-green-600 hover:!bg-green-50" variant="outlined" color="secondary" onClick={() => navigate("/profile")}>
-                Back
-              </Button>
-              <Button
-                variant="contained"
-                color="success"
-                className="bg-green-500 hover:bg-green-600"
-                type="submit"
-                onClick={() => navigate("/bankdetails")}>
-
-                Next
-              </Button>
-              {/* <Button variant="contained" color="primary" onClick={() => handleSubmit(true)}>
-            Update
-          </Button> */}
-            </div>
           </form>
         ))}
 
-        {/* Add Another Shop Button */}
-
-
-        {/* Cancel and Save Buttons */}
-
+        <div className="flex flex-row justify-between mt-4 w-full max-w-5xl">
+          <Button
+            className="!text-green-600 !border-green-600 hover:!bg-green-50"
+            variant="outlined"
+            color="secondary"
+            onClick={() => navigate("/profile")}
+          >
+            Back
+          </Button>
+          <Button
+            variant="contained"
+            color="success"
+            className="bg-green-500 hover:bg-green-600"
+            onClick={handleSubmit}
+          >
+            Next
+          </Button>
+        </div>
       </div>
     </>
   );

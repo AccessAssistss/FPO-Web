@@ -56,7 +56,7 @@ const ForgetPassword = () => {
                         className="w-full h-full"
                     />
                 </div>
-                <div className="w-full max-w-3xl bg-white p-4 rounded-2xl shadow-lg flex justify-center flex-col">
+                <div className="w-full max-w-3xl md:px-20 bg-white p-4 rounded-2xl shadow-lg flex justify-center flex-col">
                     <h1 className="md:text-4xl text-xl font-bold text-[#00B251] text-center mb-4">
                         Forgot Your Password
                     </h1>

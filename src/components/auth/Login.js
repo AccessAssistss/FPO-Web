@@ -55,7 +55,7 @@ const Login = () => {
                 </div>
 
                 {/* Right side for Login Form */}
-                <div className="w-full md:w-1/2 bg-white p-5 rounded-2xl shadow-lg flex justify-center flex-col">
+                <div className="w-full md:w-1/2 md:px-20 bg-white p-5 rounded-2xl shadow-lg flex justify-center flex-col">
                     <h1 className="md:text-4xl text-xl font-bold text-[#00B251] text-center mb-4">
                         Log In
                     </h1>
@@ -107,7 +107,7 @@ const Login = () => {
                         </button>
                     </div>
 
-                    <div className="flex items-center space-x-2 mt-8">
+                    <div className="flex items-center justify-center space-x-2 mt-8">
                         <p className="md:text-lg text-gray-700">Create account.</p>
                         <button onClick={() => navigate("/ragistration")} className="text-[#00B251] md:text-lg">Sign up</button>
                     </div>

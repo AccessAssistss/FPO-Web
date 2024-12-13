@@ -1,11 +1,13 @@
 import React, { useState } from 'react';
 import axios from 'axios';
 import Swal from 'sweetalert2';
-import { useLocation } from 'react-router';
+import { useLocation, useNavigate } from 'react-router';
 import img from '../../assets/6078257.jpg'
 
 
 const NewPassword = () => {
+
+    const navigate = useNavigate();
 
     const location = useLocation();
     const [newPassword, setNewPassword] = useState('');
@@ -23,7 +25,7 @@ const NewPassword = () => {
 
         if (newPassword !== confirmPassword) {
             Swal.fire({
-                icon: 'error',
+                icon: 'warning',
                 title: 'Passwords Do Not Match',
                 text: 'Please ensure that the new password and confirm password fields match.',
             });
@@ -33,7 +35,7 @@ const NewPassword = () => {
 
         if (newPassword.length < 6) {
             Swal.fire({
-                icon: 'error',
+                icon: 'warning',
                 title: 'Password Too Short',
                 text: 'Your new password must be at least 6 characters long.',
             });
@@ -46,8 +48,8 @@ const NewPassword = () => {
             const response = await axios.put(
                 'https://apis.agrisarathi.com/fposupplier/PasswordResetAPIView',
                 {
-                    otp:otpValue, 
-                    email: email,                    
+                    otp: otpValue,
+                    email: email,
                     new_password: newPassword,
                     user_type: user_type,
 
@@ -60,6 +62,8 @@ const NewPassword = () => {
                     title: 'Password Updated',
                     text: 'Your password has been successfully updated.',
                 });
+
+                navigate('/login');
 
 
                 setNewPassword('');
@@ -78,7 +82,7 @@ const NewPassword = () => {
 
     return (
         <div className="min-h-screen flex items-center justify-center">
-             <div className="w-full h-screen flex">
+            <div className="w-full h-screen flex">
                 {/* Left side for Image */}
                 <div className="w-1/2 hidden md:block">
                     <img
@@ -87,53 +91,53 @@ const NewPassword = () => {
                         className="w-full h-full"
                     />
                 </div>
-            <div className="w-full max-w-3xl bg-white p-5 rounded-2xl shadow-lg flex justify-center flex-col">
-                <h1 className="md:text-4xl text-xl font-bold text-[#00B251] text-center mb-4">
-                    Reset Password
-                </h1>
-                <form className="grid grid-cols-1 gap-4" onSubmit={handleSubmit}>
-                    <div>
-                        <label className="block text-gray-700 font-medium mb-2">
-                            New Password
-                        </label>
-                        <div className="relative">
-                            <input
-                                type="password"
-                                placeholder="Enter Your New Password"
-                                value={newPassword}
-                                onChange={(e) => setNewPassword(e.target.value)}
-                                className="w-full p-3 border rounded-md"
-                                required
-                            />
+                <div className="w-full max-w-3xl md:px-20 bg-white p-5 rounded-2xl shadow-lg flex justify-center flex-col">
+                    <h1 className="md:text-4xl text-xl font-bold text-[#00B251] text-center mb-4">
+                        Reset Password
+                    </h1>
+                    <form className="grid grid-cols-1 gap-4" onSubmit={handleSubmit}>
+                        <div>
+                            <label className="block text-gray-700 font-medium mb-2">
+                                New Password
+                            </label>
+                            <div className="relative">
+                                <input
+                                    type="password"
+                                    placeholder="Enter Your New Password"
+                                    value={newPassword}
+                                    onChange={(e) => setNewPassword(e.target.value)}
+                                    className="w-full p-3 border rounded-md"
+                                    required
+                                />
+                            </div>
                         </div>
-                    </div>
-                    <div>
-                        <label className="block text-gray-700 font-medium mb-2">
-                            Confirm New Password
-                        </label>
-                        <div className="relative">
-                            <input
-                                type="password"
-                                placeholder="Confirm Your New Password"
-                                value={confirmPassword}
-                                onChange={(e) => setConfirmPassword(e.target.value)}
-                                className="w-full p-3 border rounded-md"
-                                required
-                            />
+                        <div>
+                            <label className="block text-gray-700 font-medium mb-2">
+                                Confirm New Password
+                            </label>
+                            <div className="relative">
+                                <input
+                                    type="password"
+                                    placeholder="Confirm Your New Password"
+                                    value={confirmPassword}
+                                    onChange={(e) => setConfirmPassword(e.target.value)}
+                                    className="w-full p-3 border rounded-md"
+                                    required
+                                />
+                            </div>
                         </div>
-                    </div>
-                    <div className="mt-8 text-center">
-                        <button
-                            type="submit"
-                            className="bg-[#00B251] text-white text-lg font-medium py-3 px-8 rounded-md hover:bg-[#00B251] md:w-1/2 transform hover:scale-105 transition-transform duration-300"
-                            disabled={loading}
-                        >
-                            {loading ? 'Submitting...' : 'Submit Password'}
-                        </button>
-                    </div>
-                </form>
+                        <div className="mt-8 text-center">
+                            <button
+                                type="submit"
+                                className="bg-[#00B251] text-white text-lg font-medium py-3 px-8 rounded-md hover:bg-[#00B251] md:w-1/2 transform hover:scale-105 transition-transform duration-300"
+                                disabled={loading}
+                            >
+                                {loading ? 'Submitting...' : 'Submit Password'}
+                            </button>
+                        </div>
+                    </form>
+                </div>
             </div>
-        </div>
         </div>
     );
 };

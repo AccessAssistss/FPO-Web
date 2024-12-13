@@ -35,20 +35,48 @@ function Navbar() {
 
   const handleMenuItemClick = (setting) => {
     if (setting === 'My Profile') {
-      navigate('/profile');  
+      navigate('/profile');
     } else if (setting === 'Logout') {
       localStorage.removeItem('access_token');
       localStorage.removeItem('refresh_token');
       navigate('/login', { replace: true });
     }
-    handleCloseUserMenu();  
+    handleCloseUserMenu();
   };
+
+  React.useEffect(() => {
+    const accessToken = localStorage.getItem('access_token');
+
+    if (!accessToken) {
+      navigate('/login'); // Navigate if there's no token
+      return;
+    }
+
+  }, [])
+
 
   return (
     <AppBar sx={{ backgroundColor: '#fff' }} position="fixed">
       <Container maxWidth="100%">
         <Toolbar disableGutters>
-          <img alt='' width='200px' src={logo} />
+          <Box
+            sx={{
+              display: 'flex',
+              flexGrow: 1,
+              fontWeight: 700,
+              letterSpacing: '.3rem',
+              color: 'inherit',
+              textDecoration: 'none',
+              cursor: 'pointer',
+
+            }}
+
+            onClick={() => navigate('/')}
+          >
+
+            <img width={'200px'} src={logo} alt='' />
+
+          </Box>
           <Box sx={{ ml: 'auto' }}>
             <Tooltip title="Open settings">
               {token && (

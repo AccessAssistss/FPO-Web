@@ -25,21 +25,27 @@ const MemberHome = () => {
         icon: 'warning',
         title: 'No File Selected',
         text: 'Please select a file to upload.',
-        confirmButtonText: 'OK'
+        confirmButtonText: 'OK',
+        didOpen: () => {
+          const swalElement = document.querySelector('.swal2-container');
+          if (swalElement) {
+            swalElement.style.zIndex = 1500; // Set SweetAlert2 modal z-index higher
+          }
+        }
       });
       return;
     }
-
-    const formData = new FormData()
-    formData.append('csv_file', file)
-
+  
+    const formData = new FormData();
+    formData.append('csv_file', file);
+  
     try {
-      setLoading(true)
-      setError(null)
-      setSuccess(null)
-
+      setLoading(true);
+      setError(null);
+      setSuccess(null);
+  
       const token = localStorage.getItem('access_token');
-
+  
       const response = await axios.post(
         'https://apis.agrisarathi.com/fposupplier/AddFarmerCsv',
         formData,
@@ -49,31 +55,34 @@ const MemberHome = () => {
             Authorization: `Bearer ${token}`,
           },
         }
-      )
-
+      );
+  
       if (response.status === 200) {
-        // setSuccess('File uploaded successfully!')
-        
         // Display SweetAlert on success
         Swal.fire({
           icon: 'success',
           title: 'File Uploaded Successfully',
           text: 'Your file has been uploaded successfully.',
-          // confirmButtonText: 'OK'
+          didOpen: () => {
+            const swalElement = document.querySelector('.swal2-container');
+            if (swalElement) {
+              swalElement.style.zIndex = 1500; // Set SweetAlert2 modal z-index higher
+            }
+          }
         }).then(() => {
           // Close the dialog after user closes the SweetAlert
           setOpenModal(false);
         });
       } else {
-        setError('Something went wrong, please try again later.')
+        setError('Something went wrong, please try again later.');
       }
     } catch (err) {
-      console.error('Upload error:', err)
-      setError('An error occurred while uploading the file.')
+      console.error('Upload error:', err);
+      setError('Only excel file is supported, please upload excel file.');
     } finally {
-      setLoading(false)
+      setLoading(false);
     }
-  }
+  };
 
   // Download sample Excel file
   const downloadSampleExcel = () => {
@@ -128,7 +137,8 @@ const MemberHome = () => {
         <DialogActions>
           <button
             onClick={handleUpload}
-            className="bg-blue-500 text-white py-2 px-4 rounded-lg hover:bg-blue-600 transition w-full"
+            style={{zIndex: 10}}
+            className="bg-blue-500  text-white py-2 px-4 rounded-lg hover:bg-blue-600 transition w-full"
             disabled={loading}
           >
             {loading ? 'Uploading...' : 'Upload Excel'}

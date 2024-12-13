@@ -48,7 +48,7 @@ const FarmersInformation = () => {
             setFarmersData(data);
             setTotalCount(count);  // Set total farmer count for pagination
         } catch (error) {
-            console.error('Error fetching farmers data:', error);
+            console.error('Error fetching member data:', error);
             setError('Error fetching data.');
         }
     };
@@ -90,7 +90,7 @@ const FarmersInformation = () => {
         if (selectedFarmers.length === 0) {
             Swal.fire({
                 title: 'Error!',
-                text: 'No farmers selected for deletion.',
+                text: 'No Members selected for deletion.',
                 icon: 'error',
                 confirmButtonText: 'OK'
             });
@@ -116,7 +116,7 @@ const FarmersInformation = () => {
             if (response.data.status === 'success') {
                 Swal.fire({
                     title: 'Success!',
-                    text: response.data.message || 'Farmers deleted successfully!',
+                    text: response.data.message || 'Members deleted successfully!',
                     icon: 'success',
                     timer: 2000,
                     showConfirmButton: false,
@@ -126,7 +126,7 @@ const FarmersInformation = () => {
             } else {
                 Swal.fire({
                     title: 'Error!',
-                    text: response.data.message || 'Failed to delete farmers.',
+                    text: response.data.message || 'Failed to delete member.',
                     icon: 'error',
                     confirmButtonText: 'OK'
                 });
@@ -201,7 +201,7 @@ const FarmersInformation = () => {
                 icon: 'error',
                 confirmButtonText: 'OK'
             });
-            setDialogError('Error submitting data.');
+            setDialogError('"Mobile number already exists.');
         }
     };
 
@@ -224,6 +224,7 @@ const FarmersInformation = () => {
                 onClick={handleBulkDelete}
                 disabled={selectedFarmers.length === 0}
                 style={{ marginLeft: '1rem' }}
+               
             >
                 Delete Selected Member
             </Button>
@@ -294,7 +295,7 @@ const FarmersInformation = () => {
             </div>
 
             <Dialog open={openDialog} onClose={() => setOpenDialog(false)}>
-                <DialogTitle>Add New Member</DialogTitle>
+                <DialogTitle sx={{marginBottom:2}} className='bg-[#00B251] text-white'>Add New Member</DialogTitle>
                 <DialogContent>
                     <TextField
                         label="Name"
@@ -302,6 +303,8 @@ const FarmersInformation = () => {
                         value={farmerName}
                         onChange={(e) => setFarmerName(e.target.value)}
                         margin="dense"
+                        required
+                        
                     />
                     <TextField
                         label="Mobile"
@@ -309,6 +312,7 @@ const FarmersInformation = () => {
                         value={farmerMobile}
                         onChange={(e) => setFarmerMobile(e.target.value)}
                         margin="dense"
+                        required
                     />
                     <TextField
                         label="Village"
@@ -316,6 +320,7 @@ const FarmersInformation = () => {
                         value={farmerVillage}
                         onChange={(e) => setFarmerVillage(e.target.value)}
                         margin="dense"
+                        required
                     />
                     <TextField
                         label="Block"
@@ -323,6 +328,7 @@ const FarmersInformation = () => {
                         value={farmerBlock}
                         onChange={(e) => setFarmerBlock(e.target.value)}
                         margin="dense"
+                        required
                     />
 
                     <FormControl fullWidth margin="dense">
@@ -331,6 +337,7 @@ const FarmersInformation = () => {
                             value={farmerGender}
                             onChange={(e) => setFarmerGender(e.target.value)}
                             label="Gender"
+                            
                         >
                             <MenuItem value="Male">Male</MenuItem>
                             <MenuItem value="Female">Female</MenuItem>
@@ -342,8 +349,8 @@ const FarmersInformation = () => {
                 </DialogContent>
 
                 <DialogActions>
-                    <Button onClick={() => setOpenDialog(false)} color="secondary">Cancel</Button>
-                    <Button onClick={handleSubmit} color="primary">Submit</Button>
+                    <Button onClick={() => setOpenDialog(false)} sx={{color:'#00B251'}} >Cancel</Button>
+                    <Button onClick={handleSubmit} sx={{color:'#00B251'}}>Submit</Button>
                 </DialogActions>
             </Dialog>
         </div>
